@@ -1,10 +1,12 @@
 // ==UserScript==
 // @name         OnShape helper
 // @namespace    V@no
-// @version      25.6.18-222250
+// @version      25.6.18-225903
 // @description  Various tweaks for OnShape, such as remap F2 for rename (SHIFT + N)
 // @author       V@no
 // @license      MIT
+// @match        https://cad.onshape.com/documents
+// @match        https://cad.onshape.com/documents?*
 // @match        https://cad.onshape.com/documents/*
 // @icon         https://onshape.com/favicon.png
 // @grant        none
@@ -18,8 +20,8 @@
 ! = ALT
 + = SHIFT
 */
-	const VERSION = "25.6.18-222250";
-	const CHANGES = `+ changes log`;
+	const VERSION = "25.6.18-225903";
+	const CHANGES = `! fix attempt: script doesn't start without page refresh`;
 	const map = {
 		"F2": {key: "N", code: "KeyN", keyCode: 78, shiftKey: true}
 	};
