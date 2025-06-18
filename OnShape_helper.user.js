@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         OnShape helper
 // @namespace    V@no
-// @version      25.6.18-182125
+// @version      25.6.18-222250
 // @description  Various tweaks for OnShape, such as remap F2 for rename (SHIFT + N)
 // @author       V@no
 // @license      MIT
@@ -18,8 +18,8 @@
 ! = ALT
 + = SHIFT
 */
-	const VERSION = "25.6.18-182125";
-	const CHANGES = ``;
+	const VERSION = "25.6.18-222250";
+	const CHANGES = `+ changes log`;
 	const map = {
 		"F2": {key: "N", code: "KeyN", keyCode: 78, shiftKey: true}
 	};

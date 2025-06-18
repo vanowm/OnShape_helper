@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>OnShape helper Changes Log</title>
+	<style>:root,body
+{
+	padding: 0;
+	border: 0;
+	margin: 0;
+}
+
+:root
+{
+	position: relative;
+	max-width: 77ch;
+	padding: 32px;
+	margin: auto;
+	font-family: "Segoe WPC", "Segoe UI", sans-serif;
+
+	--fixed-color: orange;
+	--changed-color: lightblue;
+	--added-color: green;
+	--removed-color: red;
+	--help-color: grey;
+}
+
+body
+{
+	font-size: 16px;
+	line-height: 1.5;
+}
+
+ul
+{
+	margin-top: 0;
+	margin-left: 0;
+	padding-inline-start: 1em;
+}
+
+li
+{
+	padding: 0.25em 0;
+	line-height: 0;
+	list-style: none;
+}
+
+.fixed > span,
+.changed > span,
+.added > span,
+.removed > span,
+.help > span,
+.comment > span
+{
+	display: table-cell;
+	line-height: 1.2em;
+}
+
+.comment > span
+{
+	display: initial;
+}
+
+.comment > span:first-child
+{
+	line-height: 0;
+}
+
+.fixed > span:first-child,
+.changed > span:first-child,
+.added > span:first-child,
+.removed > span:first-child,
+.help > span:first-child
+{
+	height: 1em;
+	margin-right: -0.2em;
+	color: var(--tag-color);
+	float: left;
+	font-family: monospace;
+	font-size: 1.2em;
+	font-weight: bold;
+	line-height: 1.1em;
+	white-space: pre;
+}
+
+
+.fixed
+{
+	--tag-color: var(--fixed-color);
+}
+
+.changed > span:first-child
+{
+	line-height: 1.6em;
+}
+
+.comment > span:first-child,
+x-h
+{
+	display: inline-block;
+	font-size: 0;
+	white-space: pre;
+}
+
+.legend .changed > span:first-child
+{
+	line-height: 1.5em;
+}
+
+.changed
+{
+	--tag-color: var(--changed-color);
+}
+
+.removed
+{
+	--tag-color: var(--removed-color);
+}
+
+.added
+{
+	--tag-color: var(--added-color);
+}
+
+.help
+{
+	opacity: 0.7;
+
+	--tag-color: var(--help-color);
+}
+
+.comment
+{
+	display: table-cell;
+	margin-left: 0.7em;
+	font-style: italic;
+	opacity: 0.5;
+}
+
+x-date
+{
+	color: grey;
+	font-size: 0.7em;
+	font-style: italic;
+	line-height: 2.0em;
+	opacity: 0.8;
+	vertical-align: top;
+}
+
+p
+{
+	margin-top: 0;
+	margin-bottom: 0 !important;
+}
+
+h1:first-of-type
+{
+	margin-top: 0 !important;
+}
+
+summary
+{
+	padding: 1em;
+	color: grey;
+}
+
+.legend
+{
+	position: sticky;
+	z-index: 1;
+	top: 0;
+	right: 0;
+	margin-top: -2.3em;
+	margin-right: 0;
+	float: right;
+}
+
+details
+{
+	position: absolute;
+	top: 0.2em;
+	right: 0.2em;
+	overflow: hidden;
+	width: 7.5em;
+	margin-top: 1px;
+	margin-right: 1px;
+	font-size: 0.8em;
+
+	/* padding: 1em; */
+	line-height: 1em;
+	opacity: 0.4;
+	transition: opacity var(--transition),
+		height var(--transition),
+		border var(--transition);
+	-webkit-user-select: none;
+	user-select: none;
+
+	--transition: 0.2s ease-in-out;
+}
+
+details[open],
+details:hover
+{
+	z-index: 1;
+	height: 3em;
+	background-color: var(--bgColor-default, var(--color-canvas-default));
+	opacity: 1;
+}
+
+details > div > *
+{
+	margin: 0.1em 0;
+}
+
+details:not([open]) > *
+{
+	margin: 0;
+}
+
+details > *:last-child
+{
+	margin: 1em;
+	margin-top: 0;
+}
+
+details[open]
+{
+	height: 9.5em;
+	border: 1px solid var(--borderColor-muted, var(--color-border-muted));
+	margin-top: 0;
+	margin-right: 0;
+}
+
+details > summary
+{
+	text-align: center;
+}
+
+details > div
+{
+	line-height: 1.4em;
+}
+:root
+{
+	--color-accent-fg: #2f81f7;
+	--color-border-muted: #21262d;
+	--color-canvas-default: #0d1117;
+	--color-neutral-muted: rgb(110 118 129 / 40%);
+
+	font-size: 12.3px;
+}
+
+a
+{
+	background-color: transparent;
+	color: var(--fgColor-accent, var(--color-accent-fg));
+	text-decoration: none;
+}
+
+a:hover
+{
+	text-decoration: underline;
+}
+
+h1
+{
+	padding-bottom: 0.3em;
+	border-bottom: 1px solid var(--borderColor-muted, var(--color-border-muted));
+	margin: 0.67em 0;
+	font-size: 2em;
+	font-weight: var(--base-text-weight-semibold, 600);
+	line-height: 1.25;
+}
+
+summary
+{
+	cursor: pointer;
+}
+
+.version,
+strong
+{
+	font-weight: var(--base-text-weight-semibold, 600);
+}
+
+code
+{
+	padding: 0.2em 0.4em;
+	border-radius: 6px;
+	margin: 0;
+	background-color: var(--bgColor-neutral-muted, var(--color-neutral-muted));
+	font-family: ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,"Liberation Mono",monospace;
+	font-size: 85%;
+	white-space: pre-wrap;
+	word-break: break-word;
+}
+
+@media (prefers-color-scheme: dark)
+{
+	body
+	{
+		background: var(--color-canvas-default);
+		color: #e6edf3;
+	}
+}
+</style>
+	<script>const tags = {
+	"! ": "fixed",
+	"* ": "changed",
+	"+ ": "added",
+	"- ": "removed",
+	// "#": "comment",
+	"? ": "help",
+	"v": "version"
+};
+
+for(const id in tags)
+{
+	const type = tags[id];
+	const template = document.createElement("template");
+	const style = `font-size:0;color:transparent;white-space:pre;`;
+	template.innerHTML = `<span style="${style}">${id}</span><slot></slot>`;
+	customElements.define("x-" + type, class extends HTMLElement
+	{
+		constructor ()
+		{
+			super();
+			const shadowRoot = this.attachShadow({mode: "open"});
+			shadowRoot.append(template.content.cloneNode(true));
+		}
+	});
+}
+
+document.addEventListener("selectstart", evt =>
+{
+	console.log({evt, Selection});
+});
+
+document.addEventListener("selectionchange", evt =>
+{
+	console.log({evt, Selection, base: Selection.base});
+});</script>
+</head>
+<body>
+<div class="legend">
+	<details>
+		<summary>Legend</summary>
+		<div>
+			<div class="added">
+				<span>+ </span><span>Added</span>
+			</div>
+			<div class="changed">
+				<span>* </span><span>Changed</span>
+			</div>
+			<div class="fixed">
+				<span>! </span><span>Fixed</span>
+			</div>
+			<div class="removed">
+				<span>- </span><span>Removed</span>
+			</div>
+		</div>
+	</details>
+</div>
+<h1><x-h>OnShape helper </x-h>Changes Log</h1>
+
+<div><x-h>
+</x-h><a href="https://github.com/vanowm/OnShape_helper/commit/" class="version"><x-h>v</x-h>25.6.18-182125
+	</a> <x-date>(2025-06-18 22:22:55)</x-date>
+</div><ul><li class="added" title="Added"><span><x-h>	</x-h>+ </span><span>changes log</span></li></ul>
+<div><x-h>
+</x-h><a href="https://github.com/vanowm/OnShape_helper/commit/64dcfbd" class="version"><x-h>v</x-h>25.6.18-182125
+	</a> <x-date>(2025-06-18 18:31:41)</x-date>
+</div><ul><li class="added" title="Added"><span><x-h>	</x-h>+ </span><span>Update README.md</span></li></ul>
+<div><x-h>
+</x-h><a href="https://github.com/vanowm/OnShape_helper/commit/939b555" class="version"><x-h>v</x-h>25.6.18-182125
+	</a> <x-date>(2025-06-18 18:30:29)</x-date>
+</div><ul><li class="added" title="Added"><span><x-h>	</x-h>+ </span><span>Update README.md</span></li></ul>
+<div><x-h>
+</x-h><a href="https://github.com/vanowm/OnShape_helper/commit/2d04862" class="version"><x-h>v</x-h>25.6.18-182125
+	</a> <x-date>(2025-06-18 18:22:18)</x-date>
+</div><ul><li class="added" title="Added"><span><x-h>	</x-h>+ </span><span>readme at github</span></li></ul>
+<div><x-h>
+</x-h><a href="https://github.com/vanowm/OnShape_helper/commit/3f7401c" class="version"><x-h>v</x-h>25.6.18-171855
+	</a> <x-date>(2025-06-18 17:22:41)</x-date>
+</div><ul><li class="changed" title="Changed"><span><x-h>	</x-h>* </span><span>fixed script's favicon</span></li></ul>
+<div><x-h>
+</x-h><a href="https://github.com/vanowm/OnShape_helper/commit/0125b47" class="version"><x-h>v</x-h>25.6.18-161245
+	</a> <x-date>(2025-06-18 17:00:28)</x-date>
+</div><ul><li class="added" title="Added"><span><x-h>	</x-h>+ </span><span>Initial commit</span></li></ul></body>
+</html>
