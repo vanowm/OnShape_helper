@@ -6,8 +6,10 @@ Features:
 * F2 to rename features
 * Automatically resize input fields (helpful when entering formulas or long variable names)
 * Up/Down buttons for configuration items
+
+  ![OnShape_configuration_updown_buttons](https://github.com/user-attachments/assets/7853bb4e-b15d-44df-bc7d-d5e5107aa3f0)
 * Version history properly sized
 
-![image](https://github.com/vanowm/slickdealsPlus/assets/511517/328a7870-9e85-4e24-8fd4-ca3c328c248a)
+
 
 [Changes](https://vanowm.github.io/OnShape_helper/CHANGES.html)
