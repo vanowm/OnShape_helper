@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         OnShape helper
 // @namespace    V@no
-// @version      25.6.20-121937
+// @version      25.6.20-134011
 // @description  Various tweaks for OnShape, such as remap F2 for rename (SHIFT + N)
 // @author       V@no
 // @license      MIT
@@ -21,8 +21,8 @@
 ! = ALT
 + = SHIFT
 */
-const VERSION = "25.6.20-121937";
-const CHANGES = `* center text in input field`;
+const VERSION = "25.6.20-134011";
+const CHANGES = `* history change only display username if its different`;
 const map = {
 	"F2": {key: "N", code: "KeyN", keyCode: 78, shiftKey: true}
 };
@@ -64,6 +64,13 @@ const dataValue = (el, value) =>
 
 const changeByRegex = /Change by (.+) at (.+)$/;
 
+const getChildIndex = child =>
+{
+	let i = 0;
+	while ((child = child.previousElementSibling) !== null)
+		i++;
+	return i;
+};
 // eslint-disable-next-line no-unused-vars
 const observer = new MutationObserver((mutationList, _observer) =>
 {
@@ -99,8 +106,20 @@ const observer = new MutationObserver((mutationList, _observer) =>
 			{
 				node.classList.add("OSH");
 				const changeBy = node.dataset.bsOriginalTitle.match(changeByRegex);
+				let parentChangeBy = "";
+				for(let i = getChildIndex(node); i >= 0; --i)
+				{
+					const elSibling = node.parentElement.children[i].querySelector(".os-item-modified-by");
+					if (elSibling)
+					{
+						parentChangeBy = elSibling.textContent.trim();
+						break;
+					}
+				}
+				console.log({changeBy: changeBy[1], parentChangeBy, equal: parentChangeBy === changeBy[1]});
 				const elModified = node.querySelector(".os-flex-col.os-item-modified-date.inside-document");
-				elModified.innerHTML = `${changeBy[1]}\n${changeBy[2]}`;
+				elModified.innerHTML = (parentChangeBy === changeBy[1] ? `` : `${changeBy[1]}\n`) + changeBy[2];
+				node.classList.toggle("OSH_single_line", parentChangeBy === changeBy[1]);
 			}
 			if (!node.classList.contains("OSH_conf"))
 			{
@@ -300,6 +319,10 @@ os-message-bubble .os-message-bubble-container.document-message-bubble {
 	max-width: 10em !important;
 	text-overflow: ellipsis;
  	overflow: hidden;
+	padding-top: 0.3em;
+}
+.OSH_single_line > .os-flex-col.os-item-modified-date.inside-document {
+	padding-top: 0.9em;
 }
 /* just a visual indicator that script is running - a green dot on the logo */
 osx-navbar-logo-component > a::before {
