@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         OnShape helper
 // @namespace    V@no
-// @version      25.6.20-040141
+// @version      25.6.20-121937
 // @description  Various tweaks for OnShape, such as remap F2 for rename (SHIFT + N)
 // @author       V@no
 // @license      MIT
@@ -21,9 +21,8 @@
 ! = ALT
 + = SHIFT
 */
-const VERSION = "25.6.20-040141";
-const CHANGES = `+ username at history change item
-* script running indicator as a green dot on the logo`;
+const VERSION = "25.6.20-121937";
+const CHANGES = `* center text in input field`;
 const map = {
 	"F2": {key: "N", code: "KeyN", keyCode: 78, shiftKey: true}
 };
@@ -198,6 +197,7 @@ console.log(`OnShape helper v${VERSION} loaded`, "https://greasyfork.org/en/scri
 {
 	max-width: unset;
 	z-index: 9999;
+	text-align: center;
 }
 
 div.OSH::before,
