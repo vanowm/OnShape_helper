@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         OnShape helper
 // @namespace    V@no
-// @version      25.6.18-225903
+// @version      25.6.20
 // @description  Various tweaks for OnShape, such as remap F2 for rename (SHIFT + N)
 // @author       V@no
 // @license      MIT
@@ -20,8 +20,9 @@
 ! = ALT
 + = SHIFT
 */
-	const VERSION = "25.6.18-225903";
-	const CHANGES = `! fix attempt: script doesn't start without page refresh`;
+	const VERSION = "25.6.20";
+	const CHANGES = `+ history resize animation
++ link to install from greasyfork website`;
 	const map = {
 		"F2": {key: "N", code: "KeyN", keyCode: 78, shiftKey: true}
 	};
