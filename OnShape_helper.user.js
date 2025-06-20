@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         OnShape helper
 // @namespace    V@no
-// @version      25.6.20-030029
+// @version      25.6.20-031714
 // @description  Various tweaks for OnShape, such as remap F2 for rename (SHIFT + N)
 // @author       V@no
 // @license      MIT
@@ -21,10 +21,8 @@
 ! = ALT
 + = SHIFT
 */
-const VERSION = "25.6.20-030029";
-const CHANGES = `! input field not resized when a variable inserted
-! input field shows behind floating buttons/windows
-+ configuration top/bottom rows disabled up/down buttons`;
+const VERSION = "25.6.20-031714";
+const CHANGES = `+ screenshots`;
 const map = {
 	"F2": {key: "N", code: "KeyN", keyCode: 78, shiftKey: true}
 };

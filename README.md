@@ -12,4 +12,4 @@ Features:
 
 [Install](https://greasyfork.org/en/scripts/522636)
 
-_[Changes](https://vanowm.github.io/OnShape_helper/CHANGES.html)_
+_[Changes log](https://vanowm.github.io/OnShape_helper/CHANGES.html)_
