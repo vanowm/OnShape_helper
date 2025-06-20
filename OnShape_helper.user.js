@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         OnShape helper
 // @namespace    V@no
-// @version      25.6.20-031714
+// @version      25.6.20-040141
 // @description  Various tweaks for OnShape, such as remap F2 for rename (SHIFT + N)
 // @author       V@no
 // @license      MIT
@@ -21,8 +21,9 @@
 ! = ALT
 + = SHIFT
 */
-const VERSION = "25.6.20-031714";
-const CHANGES = `+ screenshots`;
+const VERSION = "25.6.20-040141";
+const CHANGES = `+ username at history change item
+* script running indicator as a green dot on the logo`;
 const map = {
 	"F2": {key: "N", code: "KeyN", keyCode: 78, shiftKey: true}
 };
@@ -100,7 +101,7 @@ const observer = new MutationObserver((mutationList, _observer) =>
 				node.classList.add("OSH");
 				const changeBy = node.dataset.bsOriginalTitle.match(changeByRegex);
 				const elModified = node.querySelector(".os-flex-col.os-item-modified-date.inside-document");
-				elModified.textContent = `${changeBy[2]}`;
+				elModified.innerHTML = `${changeBy[1]}\n${changeBy[2]}`;
 			}
 			if (!node.classList.contains("OSH_conf"))
 			{
@@ -290,9 +291,25 @@ os-message-bubble .os-message-bubble-container.document-message-bubble {
 	max-width: unset;
 }
 
-/* logo */
-.btn.nav-item.navbar-logo-btn img {
-	-webkit-filter: brightness(1) !important;
-	filter: brightness(1) !important;
+/* version history change time */
+.os-flex-col.os-item-modified-date.inside-document {
+	font-size: 0.8em;
+	white-space: pre;
+	line-height: 1em;
+	text-align: end;
+	max-width: 10em !important;
+	text-overflow: ellipsis;
+ 	overflow: hidden;
+}
+/* just a visual indicator that script is running - a green dot on the logo */
+osx-navbar-logo-component > a::before {
+    content: "";
+    position: absolute;
+    background-color: green;
+    left: 19px;
+    top: 18px;
+    font-size: 2em;
+    width: 5px;
+    height: 5px;
 }
 `);
