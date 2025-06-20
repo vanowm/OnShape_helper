@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         OnShape helper
 // @namespace    V@no
-// @version      25.6.20-153339
+// @version      25.6.20-161108
 // @description  Various tweaks for OnShape, such as remap F2 for rename (SHIFT + N)
 // @author       V@no
 // @license      MIT
@@ -21,8 +21,8 @@
 ! = ALT
 + = SHIFT
 */
-const VERSION = "25.6.20-153339";
-const CHANGES = `! readme misspell`;
+const VERSION = "25.6.20-161108";
+const CHANGES = `- console leftover debug messages`;
 const map = {
 	"F2": {key: "N", code: "KeyN", keyCode: 78, shiftKey: true}
 };
@@ -116,7 +116,6 @@ const observer = new MutationObserver((mutationList, _observer) =>
 						break;
 					}
 				}
-				console.log({changeBy: changeBy[1], parentChangeBy, equal: parentChangeBy === changeBy[1]});
 				const elModified = node.querySelector(".os-flex-col.os-item-modified-date.inside-document");
 				elModified.innerHTML = (parentChangeBy === changeBy[1] ? `` : `${changeBy[1]}\n`) + changeBy[2];
 				node.classList.toggle("OSH_single_line", parentChangeBy === changeBy[1]);
