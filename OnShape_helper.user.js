@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         OnShape helper
 // @namespace    V@no
-// @version      25.6.20-161108
+// @version      25.6.20-162830
 // @description  Various tweaks for OnShape, such as remap F2 for rename (SHIFT + N)
 // @author       V@no
 // @license      MIT
@@ -21,8 +21,8 @@
 ! = ALT
 + = SHIFT
 */
-const VERSION = "25.6.20-161108";
-const CHANGES = `- console leftover debug messages`;
+const VERSION = "25.6.20-162830";
+const CHANGES = `! input style  applied to non-input-related parts`;
 const map = {
 	"F2": {key: "N", code: "KeyN", keyCode: 78, shiftKey: true}
 };
@@ -85,7 +85,7 @@ const observer = new MutationObserver((mutationList, _observer) =>
 			if (node.matches("input:not(.OSH)"))
 			{
 				node.classList.add("OSH");
-				node.parentElement.classList.add("OSH");
+				node.parentElement.classList.add("OSH", "input_box");
 				const eventHandler = () => dataValue(node.parentElement, node.value);
 				node.addEventListener("input", eventHandler);
 				// inserted variables don't trigger input event, so we need to check for changes
@@ -218,20 +218,20 @@ console.log(`OnShape helper v${VERSION} loaded`, "https://greasyfork.org/en/scri
 	text-align: center;
 }
 
-div.OSH::before,
-div.OSH::after {
+div.input_box.OSH::before,
+div.input_box.OSH::after {
   box-sizing: border-box;
 }
 
-div.OSH {
+div.input_box.OSH {
   display: inline-grid;
   vertical-align: top;
   align-items: center;
   position: relative;
 }
 
-div.OSH::after,
-div.OSH input
+div.input_box.OSH::after,
+div.input_box.OSH input
 {
   width: auto;
   min-width: 1em;
@@ -247,7 +247,8 @@ div.OSH input
   border: none;
 }
 
-div.OSH::after {
+/* this will force to extend the width of the input to fit the content */
+div.input_box.OSH::after {
   content: attr(data-value) " ";
   visibility: hidden;
   white-space: pre-wrap;
