@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         OnShape helper
 // @namespace    V@no
-// @version      25.6.20-162830
+// @version      25.6.22
 // @description  Various tweaks for OnShape, such as remap F2 for rename (SHIFT + N)
 // @author       V@no
 // @license      MIT
@@ -21,8 +21,10 @@
 ! = ALT
 + = SHIFT
 */
-const VERSION = "25.6.20-162830";
-const CHANGES = `! input style  applied to non-input-related parts`;
+const VERSION = "25.6.22";
+const CHANGES = `+ version history graph now properly sized.versions-history-table-container .os-flex-col.history-search-results-header
++ description column in version history
+! running script indicator not positioned properly`;
 const map = {
 	"F2": {key: "N", code: "KeyN", keyCode: 78, shiftKey: true}
 };
@@ -82,6 +84,7 @@ const observer = new MutationObserver((mutationList, _observer) =>
 			if (node.nodeType !== 1)
 				continue;
 
+			/* input boxes */
 			if (node.matches("input:not(.OSH)"))
 			{
 				node.classList.add("OSH");
@@ -102,6 +105,19 @@ const observer = new MutationObserver((mutationList, _observer) =>
 				};
 				requestAnimationFrame(loop);
 			}
+
+			/* version and history */
+			if (node.matches(".os-flex-table-row:not(.change, .OSH, .separator)"))
+			{
+				node.classList.add("OSH");
+				const elDescription = document.createElement("div");
+				elDescription.classList.add("os-flex-col", "os-item-description", "inside-document", "OSH_description");
+				elDescription.textContent = node.dataset.bsExpandedContent || "";
+				node.append(elDescription);
+				if (node.dataset.bsExpandedContent)
+					types.historyDescription = true;
+			}
+			/* version and history changes */
 			if (node.matches(".os-flex-table-row.change:not(.OSH)"))
 			{
 				node.classList.add("OSH");
@@ -120,14 +136,16 @@ const observer = new MutationObserver((mutationList, _observer) =>
 				elModified.innerHTML = (parentChangeBy === changeBy[1] ? `` : `${changeBy[1]}\n`) + changeBy[2];
 				node.classList.toggle("OSH_single_line", parentChangeBy === changeBy[1]);
 			}
-			if (!node.classList.contains("OSH_conf"))
+
+			/* configuration */
+			if (!node.classList.contains(".single-table-container.os-virtual-scroll-section:not(.OSH_conf)"))
 			{
 				const nlNodes = node.querySelectorAll(`a:not(.OSH_conf)[ng-click="configurationTable.moveParameterUp()"], a:not(.OSH_conf)[ng-click="configurationTable.moveParameterDown()"`);
-				if (nlNodes.length === 0)
-					continue;
-
-				types.configuration = nlNodes.length;
-				node.classList.add("OSH_conf");
+				if (nlNodes.length > 0)
+				{
+					types.configuration = nlNodes.length;
+					node.classList.add("OSH_conf");
+				}
 				for(let i = 0; i < nlNodes.length; i++)
 				{
 					const elA = nlNodes[i];
@@ -150,6 +168,12 @@ const observer = new MutationObserver((mutationList, _observer) =>
 
 					elA.addEventListener("click", () => moved(elA.parentElement.parentElement.parentElement));
 				}
+			}
+
+			/* version graph */
+			if (node.matches("line") && !types.versionGraph && node.closest(".os-version-graph"))
+			{
+				types.versionGraph = node.parentElement;
 			}
 		}
 	}
@@ -184,7 +208,29 @@ const observer = new MutationObserver((mutationList, _observer) =>
 		}
 	}
 
+	if (types.versionGraph)
+	{
+		const nlLines = types.versionGraph.querySelectorAll("line");
+		let max = 0;
+		let min = 1e10;
+		for(let i = 0; i < nlLines.length; i++)
+		{
+			const elLine = nlLines[i];
+			max = Math.max(max, Number.parseFloat(elLine.getAttribute("x1")));
+			min = Math.min(min, Number.parseFloat(elLine.getAttribute("x1")));
+		}
+		const elGraph = types.versionGraph.closest(".document-panel-main-content");
+		elGraph.style.setProperty("--os-version-graph-width", `${max - min + 28}px`);
+		elGraph.style.setProperty("--os-version-graph-left", `-${min - 14}px`);
+	}
+
+	if (types.historyDescription)
+	{
+		document.querySelector(".versions-history-table-container").classList.add("OSH_description");
+	}
+
 });
+
 observer.observe(document.body, {
 	childList: true,
 	subtree: true,
@@ -198,6 +244,7 @@ const moved = el =>
 	moved.timer = setTimeout(moved.clear, 2000);
 
 };
+
 moved.clear = () =>
 {
 	clearTimeout(moved.timer);
@@ -296,10 +343,21 @@ os-message-bubble .os-message-bubble-container.document-message-bubble {
 	flex: initial !important;
 }
 
+/* version history graph */
+.versions-history-table-container .os-flex-col.os-item-workspace-or-version-graph.inside-document {
+	min-width: var(--os-version-graph-width, 140px);
+}
+.os-version-graph > svg {
+	margin-left: var(--os-version-graph-left, 0);
+}
+
 /* version history user */
 .versions-history-table-container .os-flex-col.os-item-modified-by-and-date.inside-document,
 /* version history modified date */
-.os-flex-col.os-item-modified-date.inside-document {
+.os-flex-col.os-item-modified-date.inside-document,
+/* version history description */
+.versions-history-table-container.OSH_description .os-flex-col.history-search-results-header,
+.versions-history-table-container.OSH_description .os-flex-col.os-item-description{
  	flex: none;
 }
 
@@ -324,15 +382,40 @@ os-message-bubble .os-message-bubble-container.document-message-bubble {
 .OSH_single_line > .os-flex-col.os-item-modified-date.inside-document {
 	padding-top: 0.9em;
 }
+
+/* version history description column */
+.versions-history-table-container:not(.OSH_description) .OSH_description {
+	display: none !important;
+}
+.versions-history-table-container.OSH_description .os-flex-col.os-item-modified-by-and-date.inside-document + .ng-hide,
+.versions-history-table-container.OSH_description .os-flex-col.os-item-description {
+	display: block !important;
+	order: 3;
+}
+.versions-history-table-container.OSH_description .os-item-modified-by-and-date {
+	order: 4;
+}
+
+.versions-history-table-container.OSH_description .os-item-workspace-or-version-name {
+	order: 2;
+}
+.versions-history-table-container.OSH_description .os-item-workspace-or-version-graph:not(.change-item) {
+	order: 1;
+}
+
 /* just a visual indicator that script is running - a green dot on the logo */
+osx-navbar-logo-component > a {
+	position: relative;
+}
 osx-navbar-logo-component > a::before {
     content: "";
     position: absolute;
     background-color: green;
-    left: 19px;
+    left: 12px;
     top: 18px;
     font-size: 2em;
     width: 5px;
     height: 5px;
+	border-radius: 100%;
 }
 `);
