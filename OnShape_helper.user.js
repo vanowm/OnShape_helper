@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         OnShape helper
 // @namespace    V@no
-// @version      25.6.22
+// @version      25.6.24
 // @description  Various tweaks for OnShape, such as remap F2 for rename (SHIFT + N)
 // @author       V@no
 // @license      MIT
@@ -21,10 +21,9 @@
 ! = ALT
 + = SHIFT
 */
-const VERSION = "25.6.22";
-const CHANGES = `+ version history graph now properly sized.versions-history-table-container .os-flex-col.history-search-results-header
-+ description column in version history
-! running script indicator not positioned properly`;
+const VERSION = "25.6.24";
+const CHANGES = `* moved sketch message bubbles above toolbar
++ keyboard shortcuts full list`;
 const map = {
 	"F2": {key: "N", code: "KeyN", keyCode: 78, shiftKey: true}
 };
@@ -39,6 +38,11 @@ document.addEventListener("mousemove", evt =>
 {
 	mouseEvent = evt;
 }, false);
+
+const keyboardShortcuts = {
+	header: null,
+	list: new Map()
+};
 
 document.body.addEventListener("keydown", evt =>
 {
@@ -84,7 +88,7 @@ const observer = new MutationObserver((mutationList, _observer) =>
 			if (node.nodeType !== 1)
 				continue;
 
-			/* input boxes */
+			/* ----------------------------- input boxes ----------------------------- */
 			if (node.matches("input:not(.OSH)"))
 			{
 				node.classList.add("OSH");
@@ -106,7 +110,7 @@ const observer = new MutationObserver((mutationList, _observer) =>
 				requestAnimationFrame(loop);
 			}
 
-			/* version and history */
+			/* ------------------------- version and history ------------------------- */
 			if (node.matches(".os-flex-table-row:not(.change, .OSH, .separator)"))
 			{
 				node.classList.add("OSH");
@@ -117,7 +121,7 @@ const observer = new MutationObserver((mutationList, _observer) =>
 				if (node.dataset.bsExpandedContent)
 					types.historyDescription = true;
 			}
-			/* version and history changes */
+			/* --------------------- version and history changes --------------------- */
 			if (node.matches(".os-flex-table-row.change:not(.OSH)"))
 			{
 				node.classList.add("OSH");
@@ -137,7 +141,7 @@ const observer = new MutationObserver((mutationList, _observer) =>
 				node.classList.toggle("OSH_single_line", parentChangeBy === changeBy[1]);
 			}
 
-			/* configuration */
+			/* ---------------------------- configuration ---------------------------- */
 			if (!node.classList.contains(".single-table-container.os-virtual-scroll-section:not(.OSH_conf)"))
 			{
 				const nlNodes = node.querySelectorAll(`a:not(.OSH_conf)[ng-click="configurationTable.moveParameterUp()"], a:not(.OSH_conf)[ng-click="configurationTable.moveParameterDown()"`);
@@ -170,13 +174,32 @@ const observer = new MutationObserver((mutationList, _observer) =>
 				}
 			}
 
-			/* version graph */
+			/* ---------------------------- version graph ---------------------------- */
 			if (node.matches("line") && !types.versionGraph && node.closest(".os-version-graph"))
 			{
 				types.versionGraph = node.parentElement;
 			}
-		}
-	}
+
+			/* ---------------------------- message bubble --------------------------- */
+			if (node.matches(`div[ng-include="'/project/web/woolsthorpe/app/partials/toolbarMessageBubble.html'"]`) && node.parentElement !== document.body)
+			{
+				document.body.append(node);
+			}
+
+/* ------------------------ Keyboard Shortcuts panel ------------------------ */
+			if (node.matches("customize-shortcut-map"))
+			{
+				// const elHeaders = node.querySelector(".shortcut-catagory-header-list");
+				// const elShortcuts = node.querySelector(".shortcuts-list");
+				types.keyboardShortcutsHeader = node.querySelector(".shortcut-catagory-header-list");
+			}
+			if (node.matches("keyboard-shortcut"))
+			{
+				types.keyboardShortcuts = node.parentElement;
+			}
+		} // for added nodes
+	} // for mutation list
+
 	if (types.configuration)
 	{
 		if (!document.querySelector("div.single-table-container.os-virtual-scroll-section:first-child .UP"))
@@ -229,7 +252,105 @@ const observer = new MutationObserver((mutationList, _observer) =>
 		document.querySelector(".versions-history-table-container").classList.add("OSH_description");
 	}
 
+	if (types.keyboardShortcutsHeader)
+	{
+		keyboardShortcuts.header = types.keyboardShortcutsHeader.firstElementChild;
+	}
+
+	if (types.keyboardShortcuts && keyboardShortcuts.header)
+	{
+		const elHeader = keyboardShortcuts.header;
+		const type = elHeader.textContent.trim();
+		keyboardShortcuts.list.set(type, []);
+		const nlShortcuts = types.keyboardShortcuts.querySelectorAll("keyboard-shortcut");
+		for (const elShortcut of nlShortcuts)
+		{
+			const list = keyboardShortcuts.list.get(type);
+			list.push(elShortcut.cloneNode(true));
+		}
+		if (elHeader.nextElementSibling)
+		{
+			keyboardShortcuts.header = elHeader.nextElementSibling;
+			keyboardShortcuts.header.click();
+		}
+		else
+		{
+			keyboardShortcuts.header = null;
+			elHeader.parentNode.firstElementChild.click();
+			keyboardShortcutsShow();
+		}
+	}
+
 });
+
+const keyboardShortcutsShow = () =>
+{
+	const containerId = "OSH_keyboardShortcutsTable";
+	let container = document.getElementById(containerId);
+	if (!container)
+	{
+		container = document.createElement("div");
+		container.id = containerId;
+		document.body.append(container);
+	}
+
+    // Clear previous content
+	container.innerHTML = "";
+
+    // Create table
+	const table = document.createElement("table");
+	// table.style = "border-collapse:collapse;width:100%;";
+	const thead = document.createElement("thead");
+	const trHead = document.createElement("tr");
+
+    // Collect all unique shortcut property names for columns
+	const allKeys = [...keyboardShortcuts.list.keys()];
+	for (const key of allKeys)
+	{
+		const th = document.createElement("th");
+		th.textContent = key;
+		th.colSpan = 2;
+		// th.style = "border:1px solid #ccc;padding:0.5em;background:#eee;";
+		trHead.append(th);
+	}
+	thead.append(trHead);
+	table.append(thead);
+
+    // Find the max number of shortcuts in any column
+	const maxRows = Math.max(...Array.from(keyboardShortcuts.list.values(), v => v.length));
+
+	const tbody = document.createElement("tbody");
+	for (let row = 0; row < maxRows; row++)
+	{
+		const tr = document.createElement("tr");
+
+		for (const key of allKeys)
+		{
+			// td.style = "border:1px solid #ccc;padding:0.5em;";
+			const shortcut = keyboardShortcuts.list.get(key)[row];
+			const td1 = document.createElement("td");
+			const td2 = td1.cloneNode();
+			if (shortcut)
+			{
+				td1.append(shortcut.querySelector(".shortcut-keys"));
+				td2.append(shortcut.querySelector(".shortcut-label"));
+			}
+			tr.append(td1);
+			tr.append(td2);
+		}
+		tbody.append(tr);
+	}
+	table.append(tbody);
+
+    // Add close button
+	const buttonClose = document.createElement("button");
+	buttonClose.textContent = "Close";
+	buttonClose.style = "position:absolute;top:0.5em;right:0.5em;";
+	buttonClose.addEventListener("click", () => container.remove());
+
+	container.append(table);
+	container.append(buttonClose);
+};
 
 observer.observe(document.body, {
 	childList: true,
@@ -294,7 +415,7 @@ div.input_box.OSH input
   border: none;
 }
 
-/* this will force to extend the width of the input to fit the content */
+/* --- this will force to extend the width of the input to fit the content -- */
 div.input_box.OSH::after {
   content: attr(data-value) " ";
   visibility: hidden;
@@ -333,17 +454,21 @@ div.single-table-container.os-virtual-scroll-section:last-child .DOWN {
   	pointer-events: none;
 }
 
-/* Message bubble move to the top */
+/* --------------------- Message bubble move to the top --------------------- */
 os-message-bubble .os-message-bubble-container.document-message-bubble {
 	top: 5px;
 }
+.os-speech-bubble-container
+{
+	top: 0;
+}
 
-/* version history */
+/* ----------------------------- version history ---------------------------- */
 .versions-history-table-container .os-flex-col.os-item-workspace-or-version-graph.inside-document {
 	flex: initial !important;
 }
 
-/* version history graph */
+/* -------------------------- version history graph ------------------------- */
 .versions-history-table-container .os-flex-col.os-item-workspace-or-version-graph.inside-document {
 	min-width: var(--os-version-graph-width, 140px);
 }
@@ -351,24 +476,24 @@ os-message-bubble .os-message-bubble-container.document-message-bubble {
 	margin-left: var(--os-version-graph-left, 0);
 }
 
-/* version history user */
+/* -------------------------- version history user -------------------------- */
 .versions-history-table-container .os-flex-col.os-item-modified-by-and-date.inside-document,
-/* version history modified date */
+/* ---------------------- version history modified date --------------------- */
 .os-flex-col.os-item-modified-date.inside-document,
-/* version history description */
+/* ----------------------- version history description ---------------------- */
 .versions-history-table-container.OSH_description .os-flex-col.history-search-results-header,
 .versions-history-table-container.OSH_description .os-flex-col.os-item-description{
  	flex: none;
 }
 
-/* version history description */
+/* ----------------------- version history description ---------------------- */
 .versions-history-table-container .os-flex-col.os-item-modified-date.inside-document,
 .versions-history-table-container .os-flex-col.os-item-workspace-or-version-name.inside-document,
 .versions-history-table-container .os-flex-col.os-item-workspace-or-version-description.inside-document {
 	max-width: unset;
 }
 
-/* version history change time */
+/* ----------------------- version history change time ---------------------- */
 .os-flex-col.os-item-modified-date.inside-document {
 	font-size: 0.8em;
 	white-space: pre;
@@ -383,7 +508,7 @@ os-message-bubble .os-message-bubble-container.document-message-bubble {
 	padding-top: 0.9em;
 }
 
-/* version history description column */
+/* ------------------- version history description column ------------------- */
 .versions-history-table-container:not(.OSH_description) .OSH_description {
 	display: none !important;
 }
@@ -401,6 +526,46 @@ os-message-bubble .os-message-bubble-container.document-message-bubble {
 }
 .versions-history-table-container.OSH_description .os-item-workspace-or-version-graph:not(.change-item) {
 	order: 1;
+}
+
+/* --------------------------- Keyboard shortcuts --------------------------- */
+#OSH_keyboardShortcutsTable {
+	position:fixed;
+	top:10%;
+	left:10%;
+	background:var(--background-color);
+	z-index:9999;
+	padding:1em;
+	border:2px solid #888;
+	max-height:80vh;
+	overflow:auto;
+}
+#OSH_keyboardShortcutsTable th {
+	text-align: center;
+	border-bottom: 1px solid var(--text-color);
+	padding: 0.5em 0;
+}
+#OSH_keyboardShortcutsTable > table {
+	border: none;
+	border-collapse: collapse;
+}
+#OSH_keyboardShortcutsTable > table th,
+#OSH_keyboardShortcutsTable > table td:nth-child(odd) {
+	border-left: 1px solid var(--text-color);
+}
+#OSH_keyboardShortcutsTable > table th:first-child,
+#OSH_keyboardShortcutsTable > table td:first-child {
+	border-left: none;
+}
+#OSH_keyboardShortcutsTable .keyboard-shortcut-container,
+#OSH_keyboardShortcutsTable .keyboard-shortcut-container .shortcut-keys span {
+	margin: 0;
+}
+
+#OSH_keyboardShortcutsTable .shortcut-keys {
+	display: flex;
+	flex-wrap: nowrap;
+	justify-content: right;
 }
 
 /* just a visual indicator that script is running - a green dot on the logo */
