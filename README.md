@@ -12,6 +12,8 @@ Features:
     * Show description if available
     * Compact graph, takes up only needed space and resized automatically<br><br>
 * Move notifications above tools toolbar away from working area<br><br>[<img src="https://github.com/vanowm/OnShape_helper/blob/master/media/onshape_moved_notification.png?raw=true" width="600">](https://github.com/vanowm/OnShape_helper/blob/master/media/onshape_moved_notification.png?raw=tru)<hr>
+* `Add configuration` button remembers last used item
+
 
 [Install](https://greasyfork.org/en/scripts/522636)
 

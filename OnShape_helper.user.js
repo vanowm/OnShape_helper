@@ -1,14 +1,13 @@
 // ==UserScript==
 // @name         OnShape helper
 // @namespace    V@no
-// @version      25.7.24
+// @version      25.8.1
 // @description  Various tweaks for OnShape, such as remap F2 for rename (SHIFT + N)
 // @author       V@no
 // @license      MIT
 // @match        https://cad.onshape.com/documents
 // @match        https://cad.onshape.com/documents?*
 // @match        https://cad.onshape.com/documents/*
-// @match        https://cad.onshape.com/onshape-keyboard-shortcuts*
 // @icon         https://onshape.com/favicon.png
 // @grant        none
 // ==/UserScript==
@@ -22,8 +21,10 @@
 ! = ALT
 + = SHIFT
 */
-const VERSION = "25.7.24";
-const CHANGES = `Merge commit 'fa2822ed1a891cfef98a2950693768c7c81afba1'`;
+const VERSION = "25.8.1";
+const CHANGES = `+ Add configuration btn remembers last used item
+! help popup in FS editor with dark mode
+! dimension input style affected configurations input`;
 const map = {
 	"F2": {key: "N", code: "KeyN", keyCode: 78, shiftKey: true}
 };
@@ -38,11 +39,6 @@ document.addEventListener("mousemove", evt =>
 {
 	mouseEvent = evt;
 }, false);
-
-const keyboardShortcuts = {
-	header: null,
-	list: new Map()
-};
 
 document.body.addEventListener("keydown", evt =>
 {
@@ -180,26 +176,60 @@ const observer = new MutationObserver((mutationList, _observer) =>
 				}
 			}
 
+			/* ----------------------- add configuration button ---------------------- */
+			if (node.matches("#right-content-pane > div > div > div.content-footer.os-row > div.button-container > div:not(.OSH)"))
+			{
+				node.classList.add("OSH");
+				const elButton_orig = node.querySelector("button"); //add configuration button
+				const elButton = elButton_orig.cloneNode(true);
+				elButton_orig.parentElement.replaceChild(elButton, elButton_orig);
+				const nlSelectItems = node.querySelectorAll("a.dropdown-item");
+				const label = elButton_orig.lastChild.textContent.match(/^(.+\s)\S+/)[1];
+				const elSelectItems = [];
+				for(let i = 0; i < nlSelectItems.length; i++)
+				{
+					const el = nlSelectItems[i].cloneNode(true);
+					elSelectItems.push(el);
+					nlSelectItems[i].parentElement.replaceChild(el, nlSelectItems[i]);
+					const text = el.textContent.match(/\s(\S+?)$/)[1];
+					el.dataset.text = String(text).charAt(0).toUpperCase() + String(text).slice(1);
+				}
+				const setLabel = index =>
+				{
+					if (!elSelectItems[index].dataset.text)
+						return;
+
+					elButton.dataset.value = index;
+					elButton.replaceChild(elSelectItems[index].firstElementChild.cloneNode(true), elButton.firstElementChild);
+					elButton.lastChild.textContent = label + elSelectItems[index].dataset.text;
+				};
+				setLabel(~~localStorage.getItem("OSH_confAddButton"));
+				elButton.addEventListener("click", evt =>
+				{
+					evt.preventDefault();
+					evt.stopPropagation();
+					nlSelectItems[evt.target.dataset.value].click();
+				});
+				node.addEventListener("click", evt =>
+				{
+					if (!evt.isTrusted)
+						return; // ignore synthetic events
+
+					/* --------------------------- dropdown item --------------------------- */
+					if (evt.target.matches("a"))
+					{
+						const index = elSelectItems.indexOf(evt.target);
+						localStorage.setItem("OSH_confAddButton", index);
+						setLabel(index);
+						elButton.click();
+					}
+				});
+			}
 			/* ---------------------------- message bubble --------------------------- */
 			if (node.matches(`div[ng-include="'/project/web/woolsthorpe/app/partials/toolbarMessageBubble.html'"]`) && node.parentElement !== document.body)
 			{
 				document.body.append(node);
 			}
-
-			if (node.matches(".map-container"))
-			{
-				types.keyboardShortcutsTable = node;
-			}
-			// console.log(node);
-			/* ----------------------- Keyboard Shortcuts panel ---------------------- */
-			// if (node.matches("customize-shortcut-map"))
-			// {
-			// 	types.keyboardShortcutsHeader = node.querySelector(".shortcut-catagory-header-list");
-			// }
-			// if (node.matches("keyboard-shortcut"))
-			// {
-			// 	types.keyboardShortcuts = node.parentElement;
-			// }
 
 			if (node.matches(".d-flex.flex-column.ng-star-inserted:not(.OSH)"))
 			{
@@ -229,15 +259,18 @@ const observer = new MutationObserver((mutationList, _observer) =>
 		if (!document.querySelector("div.single-table-container.os-virtual-scroll-section:last-child .DOWN"))
 		{
 			const elRow = document.querySelector("div.single-table-container.os-virtual-scroll-section:last-child div.OSH_conf_row");
-			const elA = elRow.firstChild.cloneNode(true);
-			elA.setAttribute("ng-click", "configurationTable.moveParameterDown()");
-			elA.classList.remove("UP");
-			elA.title = "Move DOWN";
-			elA.classList.add("OSH_conf", "DOWN");
-			elA.textContent = "▼";
-			elRow.append(elA);
-			const elParent = elA.closest("div.os-table-header-responsive-last-row>div.d-flex");
-			elParent.upDown[false] = elA;
+			if (elRow)
+			{
+				const elA = elRow.firstChild.cloneNode(true);
+				elA.setAttribute("ng-click", "configurationTable.moveParameterDown()");
+				elA.classList.remove("UP");
+				elA.title = "Move DOWN";
+				elA.classList.add("OSH_conf", "DOWN");
+				elA.textContent = "▼";
+				elRow.append(elA);
+				const elParent = elA.closest("div.os-table-header-responsive-last-row>div.d-flex");
+				elParent.upDown[false] = elA;
+			}
 		}
 	}
 
@@ -261,49 +294,6 @@ const observer = new MutationObserver((mutationList, _observer) =>
 	{
 		document.querySelector(".versions-history-table-container").classList.add("OSH_description");
 	}
-
-	if (types.keyboardShortcutsTable)
-	{
-		const node = types.keyboardShortcutsTable;
-		const nlEmpty = node.querySelectorAll(".map-container > div");
-		const nlList = node.querySelectorAll(".map-container > div > div");
-		for( const elItem of nlList)
-		{
-			// elItem.remove();
-			elItem.parentElement.parentElement.append(elItem);
-			console.log(elItem);
-		}
-		for(const elEmpty of nlEmpty)
-			elEmpty.remove();
-	}
-	// if (types.keyboardShortcutsHeader)
-	// {
-	// 	keyboardShortcuts.header = types.keyboardShortcutsHeader.firstElementChild;
-	// }
-
-	// if (types.keyboardShortcuts && keyboardShortcuts.header)
-	// {
-	// 	const elHeader = keyboardShortcuts.header;
-	// 	const type = elHeader.textContent.trim();
-	// 	keyboardShortcuts.list.set(type, []);
-	// 	const nlShortcuts = types.keyboardShortcuts.querySelectorAll("keyboard-shortcut");
-	// 	for (const elShortcut of nlShortcuts)
-	// 	{
-	// 		const list = keyboardShortcuts.list.get(type);
-	// 		list.push(elShortcut.cloneNode(true));
-	// 	}
-	// 	if (elHeader.nextElementSibling)
-	// 	{
-	// 		keyboardShortcuts.header = elHeader.nextElementSibling;
-	// 		keyboardShortcuts.header.click();
-	// 	}
-	// 	else
-	// 	{
-	// 		keyboardShortcuts.header = null;
-	// 		elHeader.parentNode.firstElementChild.click();
-	// 		keyboardShortcutsShow();
-	// 	}
-	// }
 
 	/* --------------- prevent document folder open in a new tab --------------- */
 	const elFolder = document.querySelector("a.folder[target='_blank']");
@@ -340,75 +330,6 @@ const observer = new MutationObserver((mutationList, _observer) =>
 
 });
 
-const keyboardShortcutsShow = () =>
-{
-	const containerId = "OSH_keyboardShortcutsTable";
-	let container = document.getElementById(containerId);
-	if (!container)
-	{
-		container = document.createElement("div");
-		container.id = containerId;
-		document.body.append(container);
-	}
-
-    // Clear previous content
-	container.innerHTML = "";
-
-    // Create table
-	const table = document.createElement("table");
-	// table.style = "border-collapse:collapse;width:100%;";
-	const thead = document.createElement("thead");
-	const trHead = document.createElement("tr");
-
-    // Collect all unique shortcut property names for columns
-	const allKeys = [...keyboardShortcuts.list.keys()];
-	for (const key of allKeys)
-	{
-		const th = document.createElement("th");
-		th.textContent = key;
-		th.colSpan = 2;
-		// th.style = "border:1px solid #ccc;padding:0.5em;background:#eee;";
-		trHead.append(th);
-	}
-	thead.append(trHead);
-	table.append(thead);
-
-    // Find the max number of shortcuts in any column
-	const maxRows = Math.max(...Array.from(keyboardShortcuts.list.values(), v => v.length));
-
-	const tbody = document.createElement("tbody");
-	for (let row = 0; row < maxRows; row++)
-	{
-		const tr = document.createElement("tr");
-
-		for (const key of allKeys)
-		{
-			// td.style = "border:1px solid #ccc;padding:0.5em;";
-			const shortcut = keyboardShortcuts.list.get(key)[row];
-			const td1 = document.createElement("td");
-			const td2 = td1.cloneNode();
-			if (shortcut)
-			{
-				td1.append(shortcut.querySelector(".shortcut-keys"));
-				td2.append(shortcut.querySelector(".shortcut-label"));
-			}
-			tr.append(td1);
-			tr.append(td2);
-		}
-		tbody.append(tr);
-	}
-	table.append(tbody);
-
-    // Add close button
-	const buttonClose = document.createElement("button");
-	buttonClose.textContent = "Close";
-	buttonClose.style = "position:absolute;top:0.5em;right:0.5em;";
-	buttonClose.addEventListener("click", () => container.remove());
-
-	container.append(table);
-	container.append(buttonClose);
-};
-
 observer.observe(document.body, {
 	childList: true,
 	subtree: true,
@@ -434,6 +355,12 @@ moved.clear = () =>
 };
 console.log(`OnShape helper v${VERSION} loaded`, "https://greasyfork.org/en/scripts/522636");
 })(`
+
+.OSH_hidden {
+	display: none !important;
+}
+
+/* ------------------------ dimension edit input box ------------------------ */
 .dimension-edit-container .ns-feature-parameter .bti-numeric-text,
 .dimension-edit-container os-quantity-parameter input,
 .dimension-edit
@@ -443,20 +370,20 @@ console.log(`OnShape helper v${VERSION} loaded`, "https://greasyfork.org/en/scri
 	text-align: center;
 }
 
-div.input_box.OSH::before,
-div.input_box.OSH::after {
+.dimension-edit-container .input_box.OSH::before,
+.dimension-edit-container .input_box.OSH::after {
   box-sizing: border-box;
 }
 
-div.input_box.OSH {
+.dimension-edit-container .input_box.OSH {
   display: inline-grid;
   vertical-align: top;
   align-items: center;
   position: relative;
 }
 
-div.input_box.OSH::after,
-div.input_box.OSH input
+.dimension-edit-container .input_box.OSH::after,
+.dimension-edit-container .input_box.OSH input
 {
   width: auto;
   min-width: 1em;
@@ -473,12 +400,23 @@ div.input_box.OSH input
 }
 
 /* --- this will force to extend the width of the input to fit the content -- */
-div.input_box.OSH::after {
+.dimension-edit-container .input_box.OSH::after {
   content: attr(data-value) " ";
   visibility: hidden;
   white-space: pre-wrap;
 }
 
+/* ----------------------- configuration input fields ----------------------- */
+.os-select-bootstrap .os-select-match-text span,
+.os-param-wrapper > .os-param-text {
+  text-align: right;
+}
+
+.open > .dropdown-menu {
+	right: 0;
+}
+
+/* --------------------------- configuration panel -------------------------- */
 div.OSH_conf_row > .OSH_conf {
 	font-size: x-large;
 	padding: 0 0.2em;
@@ -588,50 +526,11 @@ os-message-bubble .os-message-bubble-container.document-message-bubble {
 	order: 1;
 }
 
-/* --------------------------- Keyboard shortcuts --------------------------- */
-#OSH_keyboardShortcutsTable {
-	position:fixed;
-	top:10%;
-	left:10%;
-	background:var(--background-color);
-	z-index:9999;
-	padding:1em;
-	border:2px solid #888;
-	max-height:80vh;
-	overflow:auto;
-}
-#OSH_keyboardShortcutsTable th {
-	text-align: center;
-	border-bottom: 1px solid var(--text-color);
-	padding: 0.5em 0;
-}
-#OSH_keyboardShortcutsTable > table {
-	border: none;
-	border-collapse: collapse;
-}
-#OSH_keyboardShortcutsTable > table th,
-#OSH_keyboardShortcutsTable > table td:nth-child(odd) {
-	border-left: 1px solid var(--text-color);
-}
-#OSH_keyboardShortcutsTable > table th:first-child,
-#OSH_keyboardShortcutsTable > table td:first-child {
-	border-left: none;
-}
-#OSH_keyboardShortcutsTable .keyboard-shortcut-container,
-#OSH_keyboardShortcutsTable .keyboard-shortcut-container .shortcut-keys span {
-	margin: 0;
-}
-
-#OSH_keyboardShortcutsTable .shortcut-keys {
-	display: flex;
-	flex-wrap: nowrap;
-	justify-content: right;
-}
-
 /* just a visual indicator that script is running - a green dot on the logo */
 osx-navbar-logo-component > a {
 	position: relative;
 }
+
 osx-navbar-logo-component > a::before {
     content: "";
     position: absolute;
@@ -642,5 +541,17 @@ osx-navbar-logo-component > a::before {
     width: 5px;
     height: 5px;
 	border-radius: 100%;
+}
+
+/* ---------------------------- dark mode tweaks ---------------------------- */
+[data-os-theme=dark] .fs-doc-body a,
+[data-os-theme=dark] .fs-doc-body a code
+{
+	color: var(--bs-link-color);
+}
+
+[data-os-theme=dark] .fs-doc-body .fs-parameter-name
+{
+	color: var(--os-text-tertiary--static);
 }
 `);
