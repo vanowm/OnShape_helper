@@ -1,10 +1,11 @@
 // ==UserScript==
 // @name         OnShape helper
 // @namespace    V@no
-// @version      25.8.1
+// @version      25.11.1
 // @description  Various tweaks for OnShape, such as remap F2 for rename (SHIFT + N)
 // @author       V@no
 // @license      MIT
+// @include      https://cad.onshape.com/documents/*/workspace/*/element/*
 // @match        https://cad.onshape.com/documents
 // @match        https://cad.onshape.com/documents?*
 // @match        https://cad.onshape.com/documents/*
@@ -14,17 +15,14 @@
 
 (CSS =>
 {
-// eslint-disable-next-line no-unused-expressions
 "use strict";
 /*
 ^ = CTRL
 ! = ALT
 + = SHIFT
 */
-const VERSION = "25.8.1";
-const CHANGES = `+ Add configuration btn remembers last used item
-! help popup in FS editor with dark mode
-! dimension input style affected configurations input`;
+const VERSION = "25.11.1";
+const CHANGES = `! script green dot indicator in a wrong place`;
 const map = {
 	"F2": {key: "N", code: "KeyN", keyCode: 78, shiftKey: true}
 };
@@ -73,7 +71,6 @@ const getChildIndex = child =>
 		i++;
 	return i;
 };
-// eslint-disable-next-line no-unused-vars
 const observer = new MutationObserver((mutationList, _observer) =>
 {
 	const types = {};
@@ -535,7 +532,7 @@ osx-navbar-logo-component > a::before {
     content: "";
     position: absolute;
     background-color: green;
-    left: 12px;
+    left: 23px;
     top: 18px;
     font-size: 2em;
     width: 5px;
