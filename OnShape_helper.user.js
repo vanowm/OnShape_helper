@@ -1,14 +1,16 @@
 // ==UserScript==
 // @name         OnShape helper
 // @namespace    V@no
-// @version      25.11.1
+// @version      25.11.5
 // @description  Various tweaks for OnShape, such as remap F2 for rename (SHIFT + N)
 // @author       V@no
 // @license      MIT
-// @include      https://cad.onshape.com/documents/*/workspace/*/element/*
-// @match        https://cad.onshape.com/documents
-// @match        https://cad.onshape.com/documents?*
-// @match        https://cad.onshape.com/documents/*
+// @match        https://*.onshape.com/*
+// @exclude	     https://forum.onshape.com*
+// @exclude	     https://forum.onshape.com/*
+// @exclude	     https://www.onshape.com*
+// @exclude	     https://www.onshape.com/*
+
 // @icon         https://onshape.com/favicon.png
 // @grant        none
 // ==/UserScript==
@@ -21,8 +23,9 @@
 ! = ALT
 + = SHIFT
 */
-const VERSION = "25.11.1";
-const CHANGES = `! script green dot indicator in a wrong place`;
+const VERSION = "25.11.5";
+const CHANGES = `! script doesn't start after login page
++ should work with enterprise accounts now`;
 const map = {
 	"F2": {key: "N", code: "KeyN", keyCode: 78, shiftKey: true}
 };
@@ -296,34 +299,6 @@ const observer = new MutationObserver((mutationList, _observer) =>
 	const elFolder = document.querySelector("a.folder[target='_blank']");
 	if (elFolder)
 		elFolder.removeAttribute("target");
-
-	// if (types.documentList)
-	// {
-	// 	const node = types.documentList;
-	// 	const elSplitter = node.querySelector("osx-splitter");
-	// 	const saveStyle = () => localStorage.setItem("OSH_splitterStyle", elSplitter.getAttribute("style"));
-	// 	let timer = null;
-	// 	const mutationObserver2 = new MutationObserver(mutationList2 =>
-	// 	{
-	// 		if (!elSplitter.classList.contains("OSH"))
-	// 		{
-	// 			elSplitter.classList.add("OSH");
-	// 			const savedStyle = localStorage.getItem("OSH_splitterStyle");
-	// 			if (savedStyle)
-	// 			{
-	// 				elSplitter.setAttribute("style", savedStyle);
-	// 				elSplitter.querySelector(".cdk-drag.gutter-handle").dispatchEvent(new Event("dragstart", {bubbles: true}));
-	// 				return;
-	// 			}
-
-	// 		}
-	// 		clearTimeout(timer);
-	// 		timer = setTimeout(saveStyle, 500);
-	// 		console.log("OSH: MutationObserver2", mutationList2);
-	// 	});
-	// 	mutationObserver2.observe(elSplitter, { attributeFilter: ["style"], attributeOldValue: true });
-
-	// }
 
 });
 
