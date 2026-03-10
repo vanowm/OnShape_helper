@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         OnShape helper
 // @namespace    V@no
-// @version      25.11.5
+// @version      26.3.10
 // @description  Various tweaks for OnShape, such as remap F2 for rename (SHIFT + N)
 // @author       V@no
 // @license      MIT
@@ -23,9 +23,8 @@
 ! = ALT
 + = SHIFT
 */
-const VERSION = "25.11.5";
-const CHANGES = `! script doesn't start after login page
-+ should work with enterprise accounts now`;
+const VERSION = "26.3.10";
+const CHANGES = ``;
 const map = {
 	"F2": {key: "N", code: "KeyN", keyCode: 78, shiftKey: true}
 };
@@ -67,6 +66,11 @@ const dataValue = (el, value) =>
 
 const changeByRegex = /Change by (.+) at (.+)$/;
 
+/**
+ * Returns the zero-based element index among siblings.
+ * @param {Element} child
+ * @returns {number}
+ */
 const getChildIndex = child =>
 {
 	let i = 0;
@@ -74,6 +78,10 @@ const getChildIndex = child =>
 		i++;
 	return i;
 };
+
+/**
+ * Watches dynamic Onshape UI insertions and applies helper tweaks.
+ */
 const observer = new MutationObserver((mutationList, _observer) =>
 {
 	const types = {};
@@ -83,6 +91,20 @@ const observer = new MutationObserver((mutationList, _observer) =>
 		{
 			if (node.nodeType !== 1)
 				continue;
+
+			/* ----------------------------- appearance dialog ----------------------------- */
+			if (node.matches("#appearance-dialog"))
+			{
+				const elColor = node.querySelector("#hex-input");
+				const elButton = node.querySelector("#current-color-box");
+				elButton.title = "Random color";
+				elButton.addEventListener("click", () =>
+				{
+					elColor.value = `${Math.floor(Math.random() * 16777215).toString(16)}`;
+					elColor.dispatchEvent(new Event("input", {bubbles: true}));
+				});
+				types.appearanceDialog = true;
+			}
 
 			/* ----------------------------- input boxes ----------------------------- */
 			if (node.matches("input:not(.OSH)"))
@@ -117,6 +139,7 @@ const observer = new MutationObserver((mutationList, _observer) =>
 				if (node.dataset.bsExpandedContent)
 					types.historyDescription = true;
 			}
+
 			/* --------------------- version and history changes --------------------- */
 			if (node.matches(".os-flex-table-row.change:not(.OSH)"))
 			{
